@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhishGuard // AI Email Threat Scanner</title>
+<style>
+:root{--bg:#030611;--panel:rgba(8,16,36,.82);--g:#00f5ff;--c:#b44dff;--r:#ff3b81;--y:#ffe66d;--t:#e3f6ff;--m:#8aa8c7;--ta:#040918;--tr:#1b2d50;--nav:rgba(3,6,17,.82);--rain:0,245,255;--fade:3,6,17;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--t);font:15px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;overflow-x:hidden;position:relative}
+body > *:not(#rain):not(.scanline){position:relative;z-index:1}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--nav);backdrop-filter:blur(10px)}
+#rain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.42;width:100%;height:100%}
+.scanline{position:fixed;left:0;right:0;height:120px;top:-120px;z-index:-1;background:linear-gradient(transparent,rgba(180,77,255,.10),transparent);animation:scan 7s linear infinite}
+@keyframes scan{to{top:100%}}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 5vw;position:sticky;top:env(safe-area-inset-top,0px);backdrop-filter:blur(10px);background:var(--nav);border-bottom:1px solid rgba(0,245,255,.35);box-shadow:0 5px 24px rgba(0,245,255,.08);z-index:5}
+.logo{font:700 20px ui-monospace,Menlo,Consolas,monospace;letter-spacing:2px;color:var(--g)}.logo span{color:var(--c)}
+.nav nav{display:flex;gap:22px}.nav a{color:var(--t);text-decoration:none;font:13px ui-monospace,monospace;letter-spacing:1px;transition:.2s}.nav a:hover{color:var(--g)}
+.status{font:11px ui-monospace,monospace;color:var(--g)}.status i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g);margin-right:6px;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.hero{text-align:center;padding:8vh 5vw 4vh;animation:fade 1s}
+.tag{font:12px ui-monospace,monospace;color:var(--c);letter-spacing:3px}
+.glitch{position:relative;font:800 clamp(28px,6vw,58px)/1.1 "Segoe UI",system-ui,sans-serif;margin:14px 0;text-shadow:0 0 12px rgba(0,245,255,.55),0 0 32px rgba(180,77,255,.35)}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;right:0;opacity:.6}
+.glitch::before{color:var(--c);animation:gl 3s infinite;clip-path:inset(0 0 55% 0)}.glitch::after{color:var(--r);animation:gl 2.4s infinite reverse;clip-path:inset(55% 0 0 0)}
+@keyframes gl{0%,90%,100%{transform:none}92%{transform:translate(-3px,1px)}96%{transform:translate(3px,-1px)}}
+.type{font:16px ui-monospace,monospace;color:var(--m);min-height:26px}.caret{color:var(--g);animation:pulse 1s infinite}
+.kpis{display:flex;justify-content:center;gap:clamp(12px,4vw,46px);margin-top:30px;flex-wrap:wrap}
+.kpis div{border:1px solid rgba(180,77,255,.4);border-radius:12px;padding:12px 26px;background:var(--panel);transition:.3s}.kpis div:hover{transform:translateY(-4px);box-shadow:0 0 22px rgba(0,245,255,.22),0 0 36px rgba(180,77,255,.12)}
+.kpis h3{font:700 28px ui-monospace,monospace;color:var(--g)}.kpis p{font-size:12px;color:var(--m)}
+main{max-width:1150px;margin:auto;padding:0 5vw 50px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:20px}.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:22px}
+@media(max-width:850px){.grid2{grid-template-columns:1fr}.nav nav{display:none}}
+.panel{background:var(--panel);border:1px solid rgba(0,245,255,.28);border-radius:14px;padding:22px;backdrop-filter:blur(8px);animation:fade .8s both;transition:.3s;min-width:0}
+.panel:hover{border-color:rgba(180,77,255,.7);box-shadow:0 0 24px rgba(0,245,255,.13),0 0 34px rgba(180,77,255,.13)}
+.panel h2,.sec{font:600 16px ui-monospace,monospace;color:var(--g);margin-bottom:14px;letter-spacing:1px}.sec{margin:44px 0 14px;font-size:18px}
+.panel h3{font:600 14px ui-monospace,monospace;color:var(--c);margin-bottom:12px}
+h4{font:12px ui-monospace,monospace;color:var(--m);margin:16px 0 6px;letter-spacing:1px;text-transform:uppercase}
+@keyframes fade{from{opacity:0;transform:translateY(16px)}}
+textarea{width:100%;min-height:220px;resize:vertical;background:var(--ta);border:1px solid rgba(180,77,255,.45);border-radius:10px;color:var(--g);padding:14px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;outline:none;transition:.2s}
+textarea:focus{border-color:var(--g);box-shadow:0 0 14px rgba(0,245,255,.25),0 0 24px rgba(180,77,255,.18)}
+.samples{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap;font-size:12px;color:var(--m)}
+.chip{background:none;border:1px solid var(--c);color:var(--c);border-radius:20px;padding:3px 12px;font:12px ui-monospace,monospace;cursor:pointer;transition:.2s}.chip:hover{background:var(--c);color:var(--bg)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{background:linear-gradient(90deg,var(--g),var(--c));color:#021;border:0;border-radius:8px;padding:11px 24px;font:700 13px ui-monospace,monospace;letter-spacing:1px;cursor:pointer;transition:.25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 0 24px rgba(0,245,255,.35),0 0 34px rgba(180,77,255,.28)}.btn.ghost{background:none;border:1px solid var(--m);color:var(--t)}.btn.small{margin-top:14px;padding:7px 14px}
+.idle{text-align:center;padding:46px 0;color:var(--m);font:13px ui-monospace,monospace}
+.radar{width:110px;height:110px;margin:0 auto 14px;border-radius:50%;border:2px solid var(--g);background:conic-gradient(from 0deg,rgba(0,245,255,.55),transparent 30%);animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gauge-wrap{position:relative;width:150px;margin:0 auto}.gauge{transform:rotate(-90deg);display:block}
+.gauge circle{fill:none;stroke-width:9}.gauge .bg{stroke:var(--tr)}
+.gauge .fg{stroke:var(--g);stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1),stroke .5s}
+.gtext{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.gtext b{font:700 28px ui-monospace,monospace}.gtext span{font:10px ui-monospace,monospace;color:var(--m)}
+.verdict{text-align:center;font:800 21px ui-monospace,monospace;margin:10px 0;letter-spacing:2px}.verdict.bad{color:var(--r);animation:shake .5s}.verdict.ok{color:var(--g)}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.tags{display:flex;gap:6px;flex-wrap:wrap}.tags span{background:rgba(255,46,99,.14);border:1px solid var(--r);color:var(--r);border-radius:5px;padding:1px 9px;font:12px ui-monospace,monospace;animation:fade .4s both}
+.u{border-left:3px solid var(--y);background:rgba(255,209,102,.08);padding:8px 12px;margin:6px 0;border-radius:0 8px 8px 0;font:12px ui-monospace,monospace;word-break:break-all;animation:fade .4s both}
+.u.clean{border-color:var(--g);background:rgba(0,255,156,.06)}.u small{display:block;color:var(--y);margin-top:3px}.u.clean small{color:var(--g)}
+.why{display:flex;justify-content:space-between;gap:10px;font:12px ui-monospace,monospace;padding:3px 0}.why b.p{color:var(--r)}.why b.n{color:var(--g)}
+.mini{display:flex;gap:18px;margin-top:14px;font:12px ui-monospace,monospace;color:var(--m);flex-wrap:wrap}.muted{color:var(--m);font-size:13px}
+.bar{margin:10px 0}.bar div:first-child{display:flex;justify-content:space-between;font:12px ui-monospace,monospace;margin-bottom:3px}
+.track{height:8px;background:var(--tr);border-radius:6px;overflow:hidden}.track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--c));transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.cm{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:280px;margin:auto}
+.cm div{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font:700 28px ui-monospace,monospace;transition:.3s}.cm small{font:10px ui-monospace,monospace;font-weight:400}.cm div:hover{transform:scale(1.06)}
+.good{background:rgba(0,255,156,.16);border:1px solid var(--g);color:var(--g)}.badc{background:rgba(255,46,99,.14);border:1px solid var(--r);color:var(--r)}
+.axis{text-align:center;color:var(--m);font:11px ui-monospace,monospace;margin-top:12px}
+.h{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed rgba(111,138,163,.35);font:12px ui-monospace,monospace}.h b.bad{color:var(--r)}.h b.ok{color:var(--g)}.h span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--m)}
+footer{text-align:center;padding:26px 5vw;color:var(--m);font:12px ui-monospace,monospace;border-top:1px solid rgba(0,245,255,.22)}
+</style></head>
+<body>
+<canvas id="rain"></canvas><div class="scanline"></div>
+<header class="nav"><div class="logo">&#9670; PHISH<span>GUARD</span></div><nav><a href="#scanner">Scanner</a><a href="#model">Model</a><a href="#history">History</a></nav><div class="status"><i></i>SYSTEM ONLINE</div></header>
+<section class="hero"><p class="tag">// AI-POWERED THREAT DETECTION</p>
+<h1 class="glitch" data-text="Detect Phishing Before It Strikes">Detect Phishing Before It Strikes</h1>
+<p class="type"><span id="typed"></span><b class="caret">_</b></p>
+<div class="kpis"><div><h3 id="k-acc">--</h3><p>Model Accuracy</p></div><div><h3 id="k-f1">--</h3><p>F1 Score</p></div><div><h3 id="k-scans">0</h3><p>Scans This Session</p></div></div></section>
+<main>
+<section id="scanner" class="grid2">
+<div class="panel"><h2>&gt; Email Scanner</h2>
+<textarea id="email" placeholder="Paste the full email (subject, body, links) here..." spellcheck="false"></textarea>
+<div class="samples"><span>Load sample:</span><button class="chip" data-s="p1">Phishing #1</button><button class="chip" data-s="p2">Phishing #2</button><button class="chip" data-s="s1">Safe #1</button></div>
+<div class="row"><button id="scan" class="btn">&#9889; SCAN EMAIL</button><button id="clear" class="btn ghost">CLEAR</button></div>
+<p class="muted" style="margin-top:12px">100% private: the model runs in your browser. Nothing is uploaded.</p></div>
+<div class="panel"><h2>&gt; Threat Report</h2>
+<div id="idle" class="idle"><div class="radar"></div><p>Awaiting input...</p></div>
+<div id="report" hidden>
+<div class="gauge-wrap"><svg viewBox="0 0 120 120" class="gauge"><circle cx="60" cy="60" r="52" class="bg"/><circle id="arc" cx="60" cy="60" r="52" class="fg"/></svg><div class="gtext"><b id="pct">0%</b><span>RISK</span></div></div>
+<h3 id="verdict" class="verdict"></h3>
+<h4>Why this verdict</h4><div id="why"></div>
+<h4>Suspicious keywords</h4><div id="kw" class="tags"></div>
+<h4>Link analysis</h4><div id="urls"></div><div id="stats" class="mini"></div></div></div>
+</section>
+<section id="model"><h2 class="sec">&gt; Model Performance</h2>
+<div class="grid3"><div class="panel"><h3>Metrics (Logistic Regression)</h3><div id="bars"></div><p class="axis" id="split"></p></div>
+<div class="panel"><h3>Confusion Matrix</h3><div class="cm" id="cm"></div><p class="axis">Rows: actual &nbsp;|&nbsp; Cols: predicted</p></div>
+<div class="panel"><h3>How it works</h3><p class="muted">35 features: link red flags (no HTTPS, IP hosts, shorteners, risky TLDs, @ tricks), 28 phishing keywords, exclamation marks, CAPS ratio and HTML content. A scikit-learn logistic regression was trained on them; its weights are embedded here and evaluated live in your browser.</p></div></div></section>
+<section id="history"><h2 class="sec">&gt; Scan History</h2><div class="panel"><div id="hist"><p class="muted">No scans yet.</p></div><button id="wipe" class="btn ghost small">CLEAR HISTORY</button></div></section>
+</main>
+<footer>PhishGuard &middot; scikit-learn model exported to JavaScript &middot; trained on a synthetic dataset, for education only</footer>
+<script>
+const M={"names":["links","url red flags (total)","url red flags (worst link)","suspicious keyword count","exclamation marks","ALL-CAPS ratio","html content","word: urgent","word: verify","word: suspend","word: suspended","word: password","word: confirm","word: account","word: login","word: click","word: limited","word: security","word: alert","word: bank","word: update","word: immediately","word: expire","word: winner","word: prize","word: free","word: invoice","word: refund","word: unusual","word: locked","word: ssn","word: credit card","word: action required","word: gift card","word: wire transfer"],"mu":[0.67143,1.2699,1.2699,2.48571,0.35867,0.04302,0.15698,0.0,0.05561,0.18673,0.06837,0.06837,0.15102,0.17092,0.25459,0.20459,0.1551,0.05765,0.05357,0.05357,0.04133,0.1148,0.04643,0.06735,0.05765,0.075,0.12143,0.09031,0.04796,0.09439,0.04643,0.0,0.05663,0.04541,0.05255,0.04796],"sd":[0.46969,1.73738,1.73738,2.87615,0.79631,0.01809,0.05835,1.0,0.22917,0.3897,0.25238,0.25238,0.35807,0.37644,0.43563,0.4034,0.362,0.23309,0.22517,0.22517,0.19904,0.31878,0.21041,0.25062,0.23309,0.26339,0.32662,0.28662,0.21368,0.29237,0.21041,1.0,0.23114,0.2082,0.22314,0.21368],"w":[-1.6118,3.7523,3.7523,0.6019,0.0018,0.3886,0.12,0.0,-0.2417,1.3288,0.1702,0.1702,-2.4371,0.3611,0.1335,0.0337,1.4788,0.1505,0.065,0.065,-0.1513,0.1387,-0.3418,2.0291,0.1505,0.6799,0.0311,-0.2028,0.4103,0.0421,-0.3418,0.0,0.4722,1.0029,0.4163,0.8999],"b":2.2387,"m":{"accuracy":0.9755102040816327,"precision":0.9852941176470589,"recall":0.9571428571428572,"f1":0.9710144927536232,"cm":[[277,3],[9,201]],"train":1960,"test":490}};
+const KW=M.names.slice(7).map(n=>n.slice(6));
+const SHORT=new Set(["bit.ly","tinyurl.com","goo.gl","t.co","ow.ly","is.gd","cutt.ly","rb.gy"]);
+const TLD=new Set(["xyz","top","ru","tk","info","click","gq","ml","cf","work"]);
+const $=s=>document.querySelector(s),esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SAMPLES={p1:"Subject: URGENT: Your PayPal account has been suspended\n\nDear customer, we detected unusual activity. Click the link below immediately to verify your account or it will be locked within 24 hours.\nhttp://paypal-secure-login.xyz/verify?id=a8f3k2",
+p2:"Subject: You have won a free Amazon gift card!!\n\nCongratulations! You are our lucky winner. Claim your prize now, limited time offer!!\nhttp://185.44.12.9/amazon/signin.php",
+s1:"Subject: Meeting notes from Tuesday\n\nHi team, sharing the notes from our sync. Please review the action items and let me know if I missed anything.\nhttps://docs.google.com/document/d/abc123\n\nBest regards,\nPriya"};
+/* ---- feature extraction (mirrors features.py) ---- */
+const urls=t=>(t.match(/(?:https?:\/\/|www\.)[^\s<>"')]+/gi)||[]).map(u=>u.replace(/[.,;]+$/,""));
+function flags(u){const f=[];let p;try{p=new URL(u.includes("://")?u:"http://"+u)}catch{return["Malformed URL"]}
+const h=p.hostname,net=u.replace(/^[a-z]+:\/\//i,"").split("/")[0];
+if(p.protocol==="http:")f.push("No HTTPS encryption");if(/^\d{1,3}(\.\d{1,3}){3}$/.test(h))f.push("IP address used as host");
+if(SHORT.has(h))f.push("URL shortener hides destination");if(net.includes("@"))f.push("'@' symbol in URL");
+if(TLD.has(h.split(".").pop()))f.push("Suspicious top-level domain");if(h.split(".").length-1>=3)f.push("Excessive subdomains");
+if(h.includes("-"))f.push("Hyphenated domain");if(u.length>75)f.push("Very long URL");
+if(/login|verify|secure|update|signin|account/i.test(u))f.push("Sensitive keyword in URL");return f}
+function vector(t){const low=t.toLowerCase(),us=urls(t),fl=us.map(flags),L=t.match(/\p{L}/gu)||[],caps=L.filter(c=>c!==c.toLowerCase()).length/Math.max(L.length,1);
+const kw=KW.map(k=>+low.includes(k));
+return{v:[us.length,fl.reduce((a,b)=>a+b.length,0),Math.max(0,...fl.map(a=>a.length)),kw.reduce((a,b)=>a+b,0),(t.match(/!/g)||[]).length,caps,+(low.includes("<html")||low.includes("<a ")),...kw],us,fl,found:KW.filter((k,i)=>kw[i])}}
+function predict(t){const x=vector(t);let z=M.b;const c=x.v.map((v,i)=>{const s=(v-M.mu[i])/M.sd[i]*M.w[i];z+=s;return s});
+return{p:1/(1+Math.exp(-z)),c,x}}
+/* ---- background, typing, count-up ---- */
+(function(){const c=$("#rain"),x=c.getContext("2d");let d,n;const col=()=>getComputedStyle(document.documentElement).getPropertyValue("--rain").trim(),fd=()=>getComputedStyle(document.documentElement).getPropertyValue("--fade").trim();
+const init=()=>{c.width=innerWidth;c.height=innerHeight;n=Math.floor(c.width/16);d=Array(n).fill(1)};init();addEventListener("resize",init);
+if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+setInterval(()=>{x.fillStyle="rgba("+fd()+",.1)";x.fillRect(0,0,c.width,c.height);x.fillStyle="rgb("+col()+")";x.font="14px monospace";
+d.forEach((y,i)=>{x.fillText(String.fromCharCode(48+Math.floor(Math.random()*10)),i*16,y*16);if(y*16>c.height&&Math.random()>.975)d[i]=0;d[i]++})},55)})();
+(function(){const L=["Analyzing URLs, keywords & writing patterns...","Logistic regression trained with scikit-learn.","Paste an email. Get a verdict instantly."];let l=0,i=0,del=false;const el=$("#typed");
+(function tick(){const t=L[l];el.textContent=t.slice(0,i);if(!del&&i++===t.length){del=true;return setTimeout(tick,1600)}if(del&&--i===0){del=false;l=(l+1)%L.length}setTimeout(tick,del?18:42)})()})();
+const countUp=(el,to,s="%",d=1)=>{const t0=performance.now();(function f(t){const p=Math.min((t-t0)/1200,1);el.textContent=(to*p).toFixed(d)+s;if(p<1)requestAnimationFrame(f)})(t0)};
+/* ---- model panel ---- */
+const m=M.m;countUp($("#k-acc"),m.accuracy*100);countUp($("#k-f1"),m.f1*100);
+$("#bars").innerHTML=[["Accuracy",m.accuracy],["Precision",m.precision],["Recall",m.recall],["F1 Score",m.f1]].map(([n,v])=>`<div class="bar"><div><span>${n}</span><span>${(v*100).toFixed(2)}%</span></div><div class="track"><i data-w="${v*100}"></i></div></div>`).join("");
+setTimeout(()=>document.querySelectorAll(".track i").forEach(e=>e.style.width=e.dataset.w+"%"),300);
+$("#split").textContent=`train ${m.train} / test ${m.test} emails`;
+const[[tn,fp],[fn,tp]]=m.cm;$("#cm").innerHTML=`<div class="good">${tn}<small>True Safe</small></div><div class="badc">${fp}<small>False Alarm</small></div><div class="badc">${fn}<small>Missed Phish</small></div><div class="good">${tp}<small>True Phish</small></div>`;
+/* ---- scanner ---- */
+let scans=0;document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>$("#email").value=SAMPLES[b.dataset.s]);
+$("#clear").onclick=()=>{$("#email").value="";$("#report").hidden=true;$("#idle").hidden=false};
+$("#scan").onclick=()=>{const t=$("#email").value.trim();if(!t)return $("#email").focus();
+$("#report").hidden=true;$("#idle").hidden=false;setTimeout(()=>{const r=predict(t);render(r);save(t,r)},650)};
+function render({p,c,x}){const bad=p>=.5,col=bad?"#ff2e63":"#00ff9c";$("#idle").hidden=true;$("#report").hidden=false;
+const arc=$("#arc");arc.style.stroke=col;arc.style.strokeDashoffset=326.7;requestAnimationFrame(()=>requestAnimationFrame(()=>arc.style.strokeDashoffset=326.7*(1-p)));
+countUp($("#pct"),p*100,"%",0);$("#pct").style.color=col;const v=$("#verdict");v.className="verdict "+(bad?"bad":"ok");v.textContent=bad?"\u26A0 PHISHING DETECTED":"\u2714 EMAIL LOOKS SAFE";
+const top=c.map((s,i)=>[s,M.names[i]]).filter(a=>Math.abs(a[0])>.05).sort((a,b)=>Math.abs(b[0])-Math.abs(a[0])).slice(0,5);
+$("#why").innerHTML=top.length?top.map(([s,n])=>`<div class="why"><span>${esc(n)}</span><b class="${s>0?"p":"n"}">${s>0?"+":""}${s.toFixed(2)} ${s>0?"toward phishing":"toward safe"}</b></div>`).join(""):'<p class="muted">No strong signals.</p>';
+$("#kw").innerHTML=x.found.length?x.found.map((k,i)=>`<span style="animation-delay:${i*60}ms">${esc(k)}</span>`).join(""):'<p class="muted">None found</p>';
+$("#urls").innerHTML=x.us.length?x.us.map((u,i)=>`<div class="u ${x.fl[i].length?"":"clean"}" style="animation-delay:${i*90}ms">${esc(u)}<small>${x.fl[i].length?"\u26A0 "+x.fl[i].map(esc).join(" \u00B7 "):"\u2714 No URL red flags"}</small></div>`).join(""):'<p class="muted">No links found</p>';
+$("#stats").innerHTML=`<span>Links: ${x.us.length}</span><span>Keywords: ${x.found.length}</span><span>Exclamations: ${x.v[4]}</span>`;$("#k-scans").textContent=++scans}
+/* ---- history (browser storage, guarded) ---- */
+const K="phishguard_history",load=()=>{try{return JSON.parse(localStorage.getItem(K))||[]}catch{return[]}};
+function save(t,r){const h=load();h.unshift({t:t.replace(/\s+/g," ").slice(0,90),l:r.p>=.5,p:r.p,at:new Date().toLocaleTimeString()});try{localStorage.setItem(K,JSON.stringify(h.slice(0,10)))}catch{}draw(h.slice(0,10))}
+function draw(h=load()){$("#hist").innerHTML=h.length?h.map(x=>`<div class="h"><b class="${x.l?"bad":"ok"}">${x.l?"PHISHING":"SAFE"} ${(x.p*100).toFixed(0)}%</b><span>${esc(x.t)}</span><em>${x.at}</em></div>`).join(""):'<p class="muted">No scans yet.</p>'}
+$("#wipe").onclick=()=>{try{localStorage.removeItem(K)}catch{}draw([])};draw();
+</script></body></html>
